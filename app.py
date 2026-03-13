@@ -30,35 +30,72 @@
 
 file name event0 for keyboard
 """
-import io
+
+
+
+
 
 #!/usr/bin/python3
+import os
 
 # Open the keyboard device file
 keyboard_file = open('/dev/input/event2', 'rb')
 
-print("Opened keyboard. Press keys to see raw data...")
+print("Opened keyboard. Press arrow keys to move cursor (one step per press)")
+print("Press X to exit")
 print("Press Ctrl+C to exit\n")
 
-"""when a key is pressed a 24 byte stucture is stored in the event
+# Movement speed (pixels per key press)
+move_speed = 30
+
+try:
+    while True:
+        # Read one event (24 bytes)
+
+        """
+when a key is pressed a 24 byte stucture is stored in the event
 file , the 24 bytes are broken down into :
 * first 16 bytes are timestamps
 * 2 bytes for TYPE -what kind of event
 /* 2 bytes for code - which key/button
 * last 4  bytes for value - press/hold/release
 """
-try:
-    while True:
 
-        # Read one event (24 bytes)
         full_event = keyboard_file.read(24)
-        type_code_value = full_event[16:24]  # Gets bytes 16 through 23
-        if type_code_value [0:2] == b'\x01\x00': 
-            print(f"Type/Code/Value bytes: {type_code_value}")
+        type_code_value = full_event[16:24]  # Get bytes 16 through 23
+        
+        # Only process KEY events (type=1)
+        if type_code_value[0:2] == b'\x01\x00':
+            code = type_code_value[2:4]
+            value = type_code_value[4:8]
+         
+                
+            # LEFT ARROW (code 105 = i\x00)
+            if code == b'i\x00':
+                os.system(f"xdotool mousemove_relative -- {-move_speed} 0")
+                print("Moved left")
+            
+            # RIGHT ARROW (code 106 = j\x00)
+            elif code == b'j\x00':
+                os.system(f"xdotool mousemove_relative -- {move_speed} 0")
+                print("Moved right")
+            
+            # UP ARROW (code 103 = g\x00)
+            elif code == b'g\x00':
+                os.system(f"xdotool mousemove_relative -- 0 {-move_speed}")
+                print("Moved up")
+            
+            # DOWN ARROW (code 108 = l\x00)
+            elif code == b'l\x00':
+                os.system(f"xdotool mousemove_relative -- 0 {move_speed}")
+                print("Moved down")
+            
+            # X KEY (code 45 = -\x00)
+            elif code == b'-\x00':
+                print("X pressed - exiting...")
+                break
 
 except KeyboardInterrupt:
     print("\nExiting...")
+finally:
     keyboard_file.close()
-
-
-
