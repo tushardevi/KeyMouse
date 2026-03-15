@@ -1,6 +1,5 @@
-# /proc/bus/input/devices 
-# /dev/input
-# evdev API 
+#!/usr/bin/python3
+import os
 
 """
  Linux has a special kernel module called uinput (userspace input) that allows programs to create virtual input devices.
@@ -33,11 +32,6 @@ file name event0 for keyboard
 
 
 
-
-
-#!/usr/bin/python3
-import os
-
 # Open the keyboard device file
 keyboard_file = open('/dev/input/event2', 'rb')
 
@@ -46,7 +40,7 @@ print("Press X to exit")
 print("Press Ctrl+C to exit\n")
 
 # Movement speed (pixels per key press)
-move_speed = 30
+move_speed = 18
 
 try:
     while True:
@@ -89,8 +83,21 @@ file , the 24 bytes are broken down into :
             elif code == b'l\x00':
                 os.system(f"xdotool mousemove_relative -- 0 {move_speed}")
                 print("Moved down")
-            
-            # X KEY (code 45 = -\x00)
+
+
+            # LEFT CLICK AND RIGHT CLICK. WHEN "ENTER" PRESSED AND "R" PRESSED RESPESTIVELY
+
+            if value == b'\x01\x00\x00\x00':  # Press only
+
+                if code == b'\x1c\x00':  # Enter key
+                    os.system("xdotool click 1")
+                    print("Left click!")
+                elif code == b'\x13\x00':  # R key
+                    os.system("xdotool click 3")
+                    print("Right click!")
+
+
+            # X KEY (code 45 = -\x00) 
             elif code == b'-\x00':
                 print("X pressed - exiting...")
                 break
